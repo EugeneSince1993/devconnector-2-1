@@ -12,10 +12,12 @@ const User = require('../../models/User');
 // @desc    Register user
 // @access  Public 
 router.post('/',
+  // Validation
   [check('name', 'Name is required').not().isEmpty(),
   check('email', 'Please include a valid email').isEmail(),
   check('password', 'Please enter a password with 6 or more characters').
     isLength({ min: 6 })],
+  // Callback
   async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -25,7 +27,8 @@ router.post('/',
     const { name, email, password } = req.body;
 
     try {
-      // See if user exists
+      // See if user exists. Match the email
+      // Request to the database to get the user
       let user = await User.findOne({ email });
 
       if (user) {
@@ -64,22 +67,25 @@ router.post('/',
         }
       }
 
+      // Sign a token and send it back
       jwt.sign(
         payload,
         config.get('jwtSecret'),
         {
-          expiresIn: 360000 /* an hour (3600) for production (and deployment, for sure),                         but we put 360000 seconds for our testing 
-                               so that it not to expire quickly */
-        }, (err, token) => {
+          expiresIn: 360000 /* an hour (3600 ms) for production (and deployment, for sure), but we put 360000 ms for our testing so that it not to expire quickly */
+        },
+        // Send back a token in the callback
+        (err, token) => {
           if (err) throw err;
           res.json({ token });
-        });
+        }
+      );
 
     } catch (err) {
       console.error(err.message);
       res.status(500).send('Server error');
     }
-
-  });
+  }
+);
 
 module.exports = router;
