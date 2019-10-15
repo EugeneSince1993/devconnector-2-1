@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const gravatar = require('gravatar');
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const config = require('config');
 const { check, validationResult } = require('express-validator');
 
 const User = require('../../models/User');
@@ -56,7 +58,23 @@ router.post('/',
       await user.save();
 
       // Return jsonwebtoken
-      res.send('User registered');
+      const payload = {
+        user: {
+          id: user.id
+        }
+      }
+
+      jwt.sign(
+        payload,
+        config.get('jwtSecret'),
+        {
+          expiresIn: 360000 /* an hour (3600) for production (and deployment, for sure),                         but we put 360000 seconds for our testing 
+                               so that it not to expire quickly */
+        }, (err, token) => {
+          if (err) throw err;
+          res.json({ token });
+        });
+
     } catch (err) {
       console.error(err.message);
       res.status(500).send('Server error');
