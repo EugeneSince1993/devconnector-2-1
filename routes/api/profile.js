@@ -1,4 +1,6 @@
 const express = require('express');
+const request = require('request');
+const config = require('config');
 const router = express.Router();
 const auth = require('../../middleware/auth');
 const { check, validationResult } = require('express-validator');
@@ -356,5 +358,46 @@ router.delete(
     }
   }
 );
+
+// @route   GET api/profile/github/:username
+// @desc    Get user repos from GitHub
+/* @access  Public - because viewing a profile is public. 
+anyone can view profiles. we wanna be able to show repos there. */
+router.get(
+  '/github/:username',
+  (req, res) => {
+    try {
+      // construct an "options" object
+      const options = {
+        /* we'll plug "uri" into the request (request package
+          which has been installed in package.json). */
+        uri: `https://api.github.com/users/${req.params.username}/repos?per_page=5&sort=created:asc&client_id=${config.get('githubClientId')}&client_secret=${config.get('githubSecret')}`,
+        // method of request
+        method: 'GET',
+        // add to the headers not to have some issues
+        headers: { 'user-agent': 'node.js' }
+      }
+
+      // make a request ('request' package imported in the top of the file)
+      request(options, (error, response, body) => {
+        if (error) console.error(error);
+
+        // check for 200 response
+        if (response.statusCode !== 200) {
+          return res.status(404).json({ msg: 'No GitHub profile found' });
+        }
+        /* if everything is ok, we'll send back the "body". 
+        this body will be a regular string with escaped quotes 
+        and stuff like that, so we'll surround it with JSON.parse()
+        before we send it. */
+        res.json(JSON.parse(body));
+      });
+    } catch (err) {
+      console.error(err.message);
+      res.status(500).send('Server Error');
+    } 
+  }
+);
+
 
 module.exports = router;
