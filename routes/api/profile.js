@@ -227,6 +227,7 @@ router.put(
 
       // Dealing with MongoDB
       try {
+        // get the profile by user ID
         const profile = await Profile.findOne({ user: req.user.id });
 
         /* unshift() adds items to the array like push() method. the difference is that unshift() adds items to the beginning of the array. and push() adds items to the end of the array*/
@@ -239,6 +240,35 @@ router.put(
         console.error(err.message);
         res.status(500).send('Server Error');
       }
+  }
+);
+
+// @route   DELETE api/profile/experience/:exp_id - "exp_id" is a placeholder.
+// @desc    Delete experience from profile
+// @access  Private
+router.delete(
+  '/experience/:exp_id',
+  auth,
+  async (req, res) => {
+    try {
+      // get the profile of the logged in user by user ID
+      const profile = await Profile.findOne({ user: req.user.id });
+
+      /* Get remove index (of an experience array).
+         Get the correct experience to remove. */
+      const removeIndex = profile.experience.map(item => item.id)
+                          .indexOf(req.params.exp_id);
+      /* With splice() we can take out something. 
+         We take out index we need. */
+      profile.experience.splice(removeIndex, 1);
+
+      await profile.save();
+
+      res.json(profile);
+    } catch (err) {
+      console.error(err.message);
+      res.status(500).send('Server Error');
+    }
   }
 );
 
