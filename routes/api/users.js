@@ -11,12 +11,15 @@ const User = require('../../models/User');
 // @route   POST api/users
 // @desc    Register user
 // @access  Public 
-router.post('/',
+router.post(
+  '/',
   // Validation
-  [check('name', 'Name is required').not().isEmpty(),
-  check('email', 'Please include a valid email').isEmail(),
-  check('password', 'Please enter a password with 6 or more characters').
-    isLength({ min: 6 })],
+  [
+    check('name', 'Name is required').not().isEmpty(),
+    check('email', 'Please include a valid email').isEmail(),
+    check('password', 'Please enter a password with 6 or more characters').
+    isLength({ min: 6 })
+  ],
   // Callback
   async (req, res) => {
     const errors = validationResult(req);
@@ -38,8 +41,8 @@ router.post('/',
       // Get user's gravatar
       const avatar = gravatar.url(email, {
         s: '200', // size
-        r: 'pg', // rating - "pt" is put so that we don't have naked people etc
-        d: 'mm' // default - "mm" gives us a default image like an user icon 
+        r: 'pg',  // rating - "pt" is put so that we don't have naked people etc
+        d: 'mm'   // default - "mm" gives us a default image like an user icon 
       });
 
       // Create an instance of User (not saving to the database yet)
