@@ -153,4 +153,107 @@ router.delete(
   }
 );
 
+/* @route   PUT api/posts/like/:id - we put ":id" at the end because 
+we need to know the post id on which the like was clicked. When we click
+like (at the first time), our route should add this like to the array. 
+Pressing like or unlike, we're updating "likes" array in the Post model.
+We technically update the Post. */ 
+// @desc    Like a post 
+// @access  Private
+router.put(
+  '/like/:id',
+  auth,
+  async (req, res) => {
+    try {
+      // fetch the post
+      const post = await Post.findById(req.params.id);
+
+      // Check if post has already been liked by this user
+      /* filter() is a high-order array method.
+         The filter() method creates a new array with 
+         all elements that pass the test implemented by 
+         the provided function (function that is passed in
+         as a parameter of filter() method). 
+         By the way, "likes" is an array.
+         We wanna filter through element of an array.
+         "like" is an unit of iteration.
+         We'll compare the current iteration (user) to
+         the user that is logged in. We'll turn "like.user"
+         into a string so that it will actually match the
+         user.id that's in "req.user.id", so we'll do
+         "toString()". "req.user.id" is the logged-in user.
+         And then we wanna check the length of that.
+         If the length of the result of the filter() method
+         is greater than 0, that means it's
+         already been liked. That means that there's already
+         a like in there ("req.user.id"), that has this user.
+         1 is true, 0 is false. */
+      if (post.likes.filter(like => like.user.toString() 
+          === req.user.id).length > 0) {
+            /* Status 400 - Bad Request */
+            return res.status(400).json({ msg: 'Post already liked' });
+      }
+
+      // add on the beginning of an array
+      post.likes.unshift({ user: req.user.id });
+
+      // save the like back to the database
+      await post.save();
+
+      res.json(post.likes);
+    } catch (err) {
+      console.error(err.message);
+      res.status(500).send('Server Error');
+    }
+  }
+);
+
+// @route   PUT api/posts/unlike/:id
+// @desc    Unlike a post (remove a like)
+// @access  Private
+router.put(
+  '/unlike/:id',
+  auth,
+  async (req, res) => {
+    try {
+      // fetch a post by id
+      const post = await Post.findById(req.params.id);
+
+      // Check if post has already been liked by this
+      // logged-in user
+      /* if the length is equal to 0 (the filter returns "false"), 
+         then that means we haven't liked the post yet. */ 
+        if (post.likes.filter(like => like.user.toString() === 
+            req.user.id).length === 0) {
+            // Status 400 - Bad Request 
+            return res.status(400).json({ msg: 'Post has not yet been liked' });
+        }
+ 
+        /* Get remove index - means to get the user id (from the
+           "likes" array) which should be removed.
+           That will get the correct like to remove.
+           The map() method creates a new array with the results 
+           of calling a provided function on every element in 
+           the calling array.
+           So for each like we'll return like.user
+           "req.user.id" is the logged-in user.  */
+        const removeIndex = post.likes.map(like => like.user.toString())
+                            .indexOf(req.user.id);
+        
+        /* Take out like from the "likes" array
+           with "splice()" method.
+           the second parameter of "1" means that
+           we just wanna remove 1 from that. */
+        post.likes.splice(removeIndex, 1);
+
+        await post.save();
+        
+        res.json(post.likes);
+    } catch (err) {
+      console.error(err.message);
+      res.status(500).send('Server Error');
+    }
+  }
+);
+
 module.exports = router;
