@@ -1,2 +1,1 @@
-#MyApp
-This is my app
+You can deploy this application with Heroku.
