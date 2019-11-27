@@ -1,2 +1,6 @@
-<div>This is a `deployment` version of the original `devconnector` application (`devconnector` repository).</div>
-<div>You can deploy this application with `Heroku`.</div>
+<div>
+  This is a <strong>deployment</strong> version of the original <strong>"devconnector"</strong> application (<strong>"devconnector"</strong> repository).
+</div>
+<div>
+  You can deploy this application with <strong>"Heroku"</strong>.
+</div>
